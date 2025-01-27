@@ -6,3 +6,5 @@ numpy
 onnx
 onnxruntime-gpu
 scikit-image
+moviepy==1.0.3
+python-multipart

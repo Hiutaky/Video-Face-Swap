@@ -16,13 +16,7 @@ FACE_SWAPPER_MODEL_PATH = "./face_swap/weights/inswapper_128.onnx"
 FACE_ENHANCER_MODEL_PATH = './face_swap/weights/gfpgan_1.4.onnx'
 
 
-PROVIDERS = [("CUDAExecutionProvider", {
-            "device_id": 0,  # Specifica l'ID della GPU, se ne hai più di una
-            "arena_extend_strategy": "kNextPowerOfTwo",
-            #"gpu_mem_limit": 6 * 1024 * 1024 * 1024,  # Limita l'uso della memoria GPU
-            "cudnn_conv_algo_search": "EXHAUSTIVE",  # Ottimizza convoluzioni
-            "do_copy_in_default_stream": True
-        }), "CPUExecutionProvider"]
+PROVIDERS = [("CUDAExecutionProvider"), "CPUExecutionProvider"]
 
 
 SESSION_OPTIONS = onnxruntime.SessionOptions()

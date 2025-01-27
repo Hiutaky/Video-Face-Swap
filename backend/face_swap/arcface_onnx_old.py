@@ -16,13 +16,7 @@ session_options.enable_mem_pattern = True
 session_options.enable_cpu_mem_arena = False
 session_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
 
-providers = [("CUDAExecutionProvider", {
-            "device_id": 0,  # Specifica l'ID della GPU, se ne hai più di una
-            "arena_extend_strategy": "kNextPowerOfTwo",
-            "gpu_mem_limit": 4 * 1024 * 1024 * 1024,  # Limita l'uso della memoria GPU
-            "cudnn_conv_algo_search": "EXHAUSTIVE",  # Ottimizza convoluzioni
-            "do_copy_in_default_stream": True
-        })]
+providers = [("CUDAExecutionProvider")]
 
 class ArcFaceONNX:
     def __init__(self, model_file=None, session=None, providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']):
