@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useState } from "react";
 
 const ImageDisplay = ({ uid }) => {
@@ -8,6 +9,7 @@ const ImageDisplay = ({ uid }) => {
   const [isDownload, setIsDownload] = useState(false);
 
   const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
+  const [cropped, setCropped] = useState(true)
 
   const groupKeys = Object.keys(imageGroups);
   const currentGroup = groupKeys[currentGroupIndex];
@@ -27,7 +29,7 @@ const ImageDisplay = ({ uid }) => {
   const fetchImages = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:8001/get_images/${uid}`, {
+      const response = await fetch(`http://localhost:8000/get_images/${uid}`, {
         headers: {
           "ngrok-skip-browser-warning": "tasd"
         }
@@ -45,6 +47,7 @@ const ImageDisplay = ({ uid }) => {
   };
 
   const handleFileChange = (event, group) => {
+    console.log(event, group)
     setUploadedImages({
       ...uploadedImages,
       [group]: event.target.files[0],
@@ -53,11 +56,12 @@ const ImageDisplay = ({ uid }) => {
 
   const uploadImage = async (group) => {
     const formData = new FormData();
-    formData.append("file", uploadedImages[group]);
+    console.log(uploadedImages)
+    formData.append("file", uploadedImages[0]);
 
     try {
       const response = await fetch(
-        `http://localhost:8001/uploadnewfaces/${uid}/${group}`,
+        `http://localhost:8000/uploadnewfaces/${uid}/${group}`,
         {
           method: "POST",
           body: formData,
@@ -75,7 +79,7 @@ const ImageDisplay = ({ uid }) => {
 
   const downloadVideo = async () => {
     const response = await fetch(
-      `http://localhost:8001/download_result_video/${uid}`
+      `http://localhost:8000/download_result_video/${uid}`
     );
     const blob = await response.blob();
     const downloadUrl = window.URL.createObjectURL(blob);
@@ -92,12 +96,12 @@ const ImageDisplay = ({ uid }) => {
     try {
       const groupIdsArray = Array.from(uploadedGroups).map(Number);
       console.log(groupIdsArray);
-      const response = await fetch(`http://localhost:8001/faceswap/${uid}`, {
+      const response = await fetch(`http://localhost:8000/faceswap/${uid}`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ group_ids: groupIdsArray })
+          body: JSON.stringify({ group_ids: groupIdsArray, preview: false })
       });
 
       if (!response.ok) {
@@ -114,27 +118,49 @@ const ImageDisplay = ({ uid }) => {
       console.error("Could not perform face swap:", error);
     }
   };
+
+
+  const cropFaces = async () => {
+    const response = await axios.get(
+        `http://localhost:8000/crop-faces/${uid}`
+    );
+    console.log(response.status)
+    if( response.status ) {
+        setCropped(true);
+
+    }
+}
+
   return (
     <div className="space-y-4">
+
       <button
         className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
-        onClick={fetchImages}
-        disabled={isLoading}
+        onClick={cropFaces}
       >
-        {isLoading ? "Loading..." : "Load Images"}
+        Crop
       </button>
+      { cropped && 
+        <button
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
+          onClick={fetchImages}
+          disabled={isLoading}
+        >
+          {isLoading ? "Loading..." : "Load Images"}
+        </button>
+      }
 
       {groupKeys.length > 0 && (
         <div className="space-y-2">
           <h3 className="font-semibold">Group {currentGroup}</h3>
           <label
-            htmlFor="new-face"
+            htmlFor="new-face-2"
             className="block w-full px-4 py-2 bg-blue-600 text-white rounded cursor-pointer mb-2 transition-colors duration-300 hover:bg-blue-700"
           >
             Choose New Face
           </label>
           <input
-            id="new-face"
+            id="new-face-2"
             className="hidden"
             type="file"
             onChange={(event) => handleFileChange(event, currentGroup)}
@@ -149,7 +175,7 @@ const ImageDisplay = ({ uid }) => {
             {imageGroups[currentGroup].map((image, idx) => (
               <img
                 key={idx}
-                src={`http://localhost:8001/images/${image}`}
+                src={`http://localhost:8000/images/${image}`}
                 alt={`Group ${currentGroup} ${idx}`}
                 className="w-14 h-14 object-cover"
               />
@@ -175,7 +201,7 @@ const ImageDisplay = ({ uid }) => {
         </button>
       </div>
 
-      {uploadedGroups.size > 0 && (
+      { (
         <button
           className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-300"
           onClick={faceSwap}

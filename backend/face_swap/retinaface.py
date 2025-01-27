@@ -3,6 +3,7 @@ import numpy as np
 import onnxruntime
 import os
 import cv2
+from config import SESSION_OPTIONS
 
 
 def softmax(z):
@@ -68,7 +69,7 @@ class RetinaFace:
         if self.session is None:
             assert self.model_file is not None, "Model file path is None."
             assert os.path.exists(self.model_file), "RetinaFace weights not found."
-            self.session = onnxruntime.InferenceSession(self.model_file, providers=providers)
+            self.session = onnxruntime.InferenceSession(self.model_file, providers=providers, sess_options=SESSION_OPTIONS)
         self.center_cache = {}
         self.nms_thresh = 0.4
         self.det_thresh = 0.5
@@ -116,7 +117,7 @@ class RetinaFace:
 
     def prepare(self, ctx_id, **kwargs):
         if ctx_id<0:
-            self.session.set_providers(['CPUExecutionProvider'])
+            self.session.set_providers(['CUDAExecutionProvider', 'CPUExecutionProvider'])
         nms_thresh = kwargs.get('nms_thresh', None)
         if nms_thresh is not None:
             self.nms_thresh = nms_thresh

@@ -5,12 +5,13 @@ import onnx
 import os
 from onnx import numpy_helper
 from face_swap import face_align
+from config import PROVIDERS, SESSION_OPTIONS
 
 
 
 
 class INSwapper():
-    def __init__(self, model_file=None, session=None, providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']):
+    def __init__(self, model_file=None, session=None, providers = [ 'CUDAExecutionProvider', 'CPUExecutionProvider']):
         self.model_file = model_file
         self.session = session
         model = onnx.load(self.model_file)
@@ -21,7 +22,7 @@ class INSwapper():
         if self.session is None:
             assert self.model_file is not None, "Model file path is None."
             assert os.path.exists(self.model_file), "INSwapper weights not found."
-            self.session = onnxruntime.InferenceSession(self.model_file, providers=providers)
+            self.session = onnxruntime.InferenceSession(self.model_file, providers=providers, sess_options=SESSION_OPTIONS)
         inputs = self.session.get_inputs()
         self.input_names = []
         for inp in inputs:
@@ -51,7 +52,6 @@ class INSwapper():
         latent = np.dot(latent, self.emap)
         latent /= np.linalg.norm(latent)
         pred = self.session.run(self.output_names, {self.input_names[0]: blob, self.input_names[1]: latent})[0]
-        print(type(pred), pred.shape)
         img_fake = pred.transpose((0,2,3,1))[0]
         bgr_fake = np.clip(255 * img_fake, 0, 255).astype(np.uint8)[:,:,::-1]
         if not paste_back:
